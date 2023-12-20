@@ -16,6 +16,7 @@ root.title("Paint App")
 root.geometry("1100x600")
 
 color = color_selector.selector()
+
 defaultBrush = paintBrush.defaultPaint()
 
 # -------------- variables --------------------
@@ -60,15 +61,15 @@ def selectColor():
     color.selectColor(stroke_color,previousColor,previousColor2)
 
 
-def startPaint(event):
+# def startPaint(event):
 
     
 
-    global prevPoint
-    global currentPoint
+#     global prevPoint
+#     global currentPoint
     
-def l(i):
-    print("hi")
+# def l(i):
+#     print("hi")
        
 
 def saveImage():
@@ -114,7 +115,7 @@ def writeText(event):
 frame1 = Frame(root , height=100 , width=1100 )
 frame1.grid(row=0 , column=0, sticky=NW)
 
-# toolsFrame 
+# initializing taskbar
 
 initTaskbar(frame1,usePencil,useEraser,stroke_size,options,selectColor,stroke_color,previousColor,previousColor2,saveImage,createNew,clear,settings,about,textValue)
 
@@ -123,53 +124,49 @@ initTaskbar(frame1,usePencil,useEraser,stroke_size,options,selectColor,stroke_co
 frame2 = Frame(root , height=500 , width=1100 , bg="yellow")
 frame2.grid(row=1 , column=0)
 
-canvas = Canvas(frame2 , height=500 , width=1100 , bg="white" )
-canvas.grid(row=0 , column=0)
+main_canvas = Canvas(frame2 , height=500 , width=1100 , bg="white" )
+main_canvas.grid(row=0 , column=0)
 
-# canvas.create_rectangle(0,0,2,2,"black","black",10)
-canvas.bind("<ButtonRelease-1>", startPaint)
-canvas.bind("<B3-Motion>" , l)
-canvas.bind("<Button-2>", writeText)
+
+# binding the event for writting text
+# main_canvas.bind("<Button-2>", writeText)
 root.resizable(True , True)
-s = 0
 
-
+# added new Graphics handler object to handle
 class GraphicsHandler:
 
-    def __init__(self,canvas) -> None:
+    def __init__(self,main_canvas,drawing_canvas) -> None:
         super()
         global prevPoint
         global currentPoint
     
+
+        self.drawing_canvas = drawing_canvas
         self.penDown = 0
-        canvas.bind("<B1-Motion>",self.ok)
+        self.drawing_canvas.bind("<B1-Motion>",self.setPenDown)
+        self.drawing_canvas.bind("<ButtonRelease-1>", self.setPenUp)
         self.prevPoint = prevPoint
-        a= 0 
+
         while True:
             # arc = canvas.create_arc(20, 50, 190, 10, start=0, extent=110, fill="red")    
-            defaultBrush.render(canvas)
             if int(self.penDown) == 1:
-                if a>1:
-                    self.prevPoint = defaultBrush.paint(self.event,canvas,self.prevPoint,currentPoint,stroke_color,stroke_size)
-                else:
-                    self.prevPoint = [0,0]
-                    a+=1
-                    arc = canvas.create_arc(20, 50, 190, 10, start=0, extent=110, fill="red")    
-                
-                    self.prevPoint = defaultBrush.paint(self.event,canvas,self.prevPoint,currentPoint,stroke_color,stroke_size)
-                
-
-            if self.penDown == 0:
-                a = 0
+                self.prevPoint = defaultBrush.paintBase(self.event,self.drawing_canvas,self.prevPoint,currentPoint,stroke_color,stroke_size)
 
             self.penDown = 0
-            canvas.pack()
+            main_canvas.pack()
             root.update()
             time.sleep(0.01)
 
-    def ok(self,event):
+    def setPenDown(self,event):
         self.penDown = 1
         self.event = event
+    
+    def setPenUp(self,event):
+        self.penDown = 0
+        self.prevPoint = [0,0]
+        defaultBrush.render(self.drawing_canvas)
 
-g = GraphicsHandler(canvas)
-prevPoint = g.prevPoint
+g = GraphicsHandler(main_canvas,main_canvas)
+# prevPoint = g.prevPoint
+
+root.mainloop()
